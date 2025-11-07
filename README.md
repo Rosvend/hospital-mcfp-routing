@@ -10,23 +10,6 @@ The study area corresponds approximately to a **1 km² urban region** (either a 
 In **prehospital emergency care systems**, every minute of response time can determine patient survival.
 In dense urban areas, **traffic congestion**, **limited ambulance availability**, and **operational costs** represent major logistical challenges.
 
-This project proposes a **multi-commodity flow optimization model** to determine **optimal ambulance routes** in scenarios with **simultaneous emergencies**, considering three levels of medical severity:
-
-* **Mild**
-* **Moderate**
-* **Critical**
-
-We define an urban quadrant of approximately 1 km², including:
-
-* A **base station** (ambulance origin node)
-* Several **randomly simulated emergency locations** (destination nodes)
-
-Each ambulance must travel from its base to the incident point in the **minimum possible time**, while respecting **road capacity constraints**.
-
----
-
-## Problem Statement
-
 Traditional ambulance dispatch systems often rely on **manual or heuristic assignments**, lacking an optimization framework that simultaneously considers **travel time**, **clinical priority**, and **operational cost**.
 This leads to **inefficient resource use**, **long response times**, and **excessive fuel and personnel costs**.
 
@@ -71,34 +54,6 @@ The interactive **Streamlit application** includes the following features:
 
 ---
 
-## General Objective
-
-Design and implement an application that integrates a **multi-commodity flow optimization model** to **minimize the total response cost** of urban ambulance services, considering both **travel time** and **operational costs** differentiated by ambulance type.
-
----
-
-## Deliverables
-
-1. **Python Script or Notebook** implementing the model
-   (using **OSMnx** for the network and **PuLP** for the optimization model).
-2. **Interactive Streamlit Application**
-   with configuration controls and map visualization.
-3. **Technical Report** including:
-
-   * Description of the study area and data
-   * Mathematical formulation of the optimization model
-   * Step-by-step solution procedure
-   * Results presentation for at least **three defined scenarios**
-4. **GitHub Repository / Colab Notebook**
-   containing:
-
-   * Clean and commented code
-   * `requirements.txt` file with dependencies
-5. **Deployed Application Link**
-   (via [streamlit.io](https://streamlit.io))
-
----
-
 ## Technologies Used
 
 * **Python 3.10+**
@@ -140,8 +95,8 @@ Design and implement an application that integrates a **multi-commodity flow opt
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/<your-username>/ambulance-routing-optimization.git
-   cd ambulance-routing-optimization
+   git clone https://github.com/rosvend/hospital-mcfp-routing.git
+   cd hospital-mcfp-routing
    ```
 
 2. **Install dependencies**

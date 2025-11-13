@@ -4,6 +4,8 @@ import streamlit as st
 import sys
 from pathlib import Path
 import random
+import json
+import folium
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent / 'src'))
@@ -24,8 +26,59 @@ st.sidebar.header("Configuration")
 
 # Geographic parameters
 st.sidebar.subheader("Network Area")
-center_lat = st.sidebar.number_input("Latitude", value=6.2331, format="%.4f", help="Default: Hospital San Vicente (Medellin)")
-center_lon = st.sidebar.number_input("Longitude", value=-75.5839, format="%.4f")
+
+# Add coordinate selection method
+coord_method = st.sidebar.radio(
+    "Coordinate Selection Method",
+    ["Manual Input", "Click on Map"],
+    help="Choose how to select the center point"
+)
+
+if coord_method == "Manual Input":
+    center_lat = st.sidebar.number_input("Latitude", value=6.2331, format="%.4f", help="Default: Hospital San Vicente (Medellin)")
+    center_lon = st.sidebar.number_input("Longitude", value=-75.5839, format="%.4f")
+else:
+    # Initialize coordinates in session state if not present
+    if 'selected_lat' not in st.session_state:
+        st.session_state.selected_lat = 6.2331
+    if 'selected_lon' not in st.session_state:
+        st.session_state.selected_lon = -75.5839
+    
+    st.sidebar.markdown("**Click on the map below to select center point:**")
+    
+    # Create a simple map for coordinate selection
+    selection_map = folium.Map(
+        location=[st.session_state.selected_lat, st.session_state.selected_lon],
+        zoom_start=13,
+        tiles='OpenStreetMap'
+    )
+    
+    # Add a marker at current selection
+    folium.Marker(
+        [st.session_state.selected_lat, st.session_state.selected_lon],
+        popup=f"Selected: {st.session_state.selected_lat:.4f}, {st.session_state.selected_lon:.4f}",
+        icon=folium.Icon(color='red', icon='star')
+    ).add_to(selection_map)
+    
+    # Display the map and capture clicks
+    map_data = st_folium(
+        selection_map,
+        width=280,
+        height=200,
+        key="coord_selector"
+    )
+    
+    # Update coordinates if user clicked on map
+    if map_data and map_data.get('last_clicked'):
+        st.session_state.selected_lat = map_data['last_clicked']['lat']
+        st.session_state.selected_lon = map_data['last_clicked']['lng']
+        st.rerun()
+    
+    center_lat = st.session_state.selected_lat
+    center_lon = st.session_state.selected_lon
+    
+    st.sidebar.success(f"📍 Selected: {center_lat:.4f}, {center_lon:.4f}")
+
 network_method = st.sidebar.selectbox("Area Shape", ["circle", "square"])
 distance = st.sidebar.slider("Distance (m)", 400, 800, 560, help="Radius for circle or half-side for square")
 
@@ -45,6 +98,10 @@ st.sidebar.subheader("Ambulance Costs")
 cost_leve = st.sidebar.number_input("Leve (Basic)", value=100.0, help="Cost per trip in USD")
 cost_media = st.sidebar.number_input("Media (Intermediate)", value=250.0)
 cost_critica = st.sidebar.number_input("Critica (Advanced)", value=500.0)
+
+# Visualization options
+st.sidebar.subheader("Visualization")
+animate_routes = st.sidebar.checkbox("Animate Routes 🐍", value=True, help="Show animated 'snake' effect on routes")
 
 # Action buttons
 st.sidebar.divider()
@@ -158,10 +215,11 @@ with tab1:
                         map_viz.add_route(
                             path, 
                             color=color, 
-                            weight=4, 
-                            opacity=0.8,
+                            weight=5, 
+                            opacity=0.9,
                             label=label,
-                            required_speed=required_speed if isinstance(required_speed, (int, float)) else None
+                            required_speed=required_speed if isinstance(required_speed, (int, float)) else None,
+                            animated=animate_routes
                         )
                 
                 # Add legend

@@ -1,6 +1,7 @@
 import folium
 import networkx as nx
 from branca.element import Template, MacroElement
+from folium.plugins import AntPath
 
 
 class MapVisualizer:
@@ -54,7 +55,7 @@ class MapVisualizer:
         
         return self.map
     
-    def add_route(self, path, color='blue', weight=3, opacity=0.8, label=None, required_speed=None):
+    def add_route(self, path, color='blue', weight=3, opacity=0.8, label=None, required_speed=None, animated=False):
         """
         Add a route (path) to the map
         Parameters:
@@ -64,6 +65,7 @@ class MapVisualizer:
         - opacity: line opacity
         - label: route label for popup
         - required_speed: required speed for this route
+        - animated: if True, add animated "ant path" effect
         """
         if self.map is None:
             self.create_base_map()
@@ -81,14 +83,27 @@ class MapVisualizer:
         if required_speed:
             popup_text += f"<br>Required Speed: {required_speed:.1f} km/h"
         
-        # Add route line
-        folium.PolyLine(
-            locations=coords,
-            color=color,
-            weight=weight,
-            opacity=opacity,
-            popup=folium.Popup(popup_text, max_width=250)
-        ).add_to(self.map)
+        if animated:
+            # Add animated route using AntPath
+            AntPath(
+                locations=coords,
+                color=color,
+                weight=weight,
+                opacity=opacity,
+                delay=800,
+                dash_array=[10, 20],
+                pulse_color='white',
+                popup=folium.Popup(popup_text, max_width=250)
+            ).add_to(self.map)
+        else:
+            # Add static route line
+            folium.PolyLine(
+                locations=coords,
+                color=color,
+                weight=weight,
+                opacity=opacity,
+                popup=folium.Popup(popup_text, max_width=250)
+            ).add_to(self.map)
         
         return self.map
     

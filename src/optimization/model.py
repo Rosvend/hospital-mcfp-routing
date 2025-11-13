@@ -185,32 +185,28 @@ class AmbulanceRoutingModel:
         """
         Restricciones de velocidad requerida:
         
-        x_ijk · r_k ≤ c_ij  ∀(i,j) ∈ A, ∀k ∈ K
+        r_k · x_ijk ≤ c_ij  ∀(i,j) ∈ A, ∀k ∈ K
         
-        Si el commodity k usa el arco (i,j), entonces su velocidad
-        requerida r_k debe ser menor o igual a la capacidad c_ij del arco.
+        Cada ambulancia (commodity) puede usar el arco (i,j) solo si su velocidad
+        requerida r_k no excede la capacidad c_ij del arco.
         
-        Esta restricción se puede expresar también como:
-        r_k · x_ijk ≤ c_ij
-        
-        que es equivalente pero más clara para PuLP.
+        La capacidad es un límite de velocidad, no un recurso consumible.
+        Múltiples ambulancias pueden usar el mismo arco simultáneamente siempre
+        que cada una pueda mantener su velocidad requerida.
         """
         for (u, v, key) in self.data.edges:
             edge_data = self.data.edge_data[(u, v, key)]
             capacity = edge_data['capacity']  # c_ij en km/h
             
+            # Each commodity independently must satisfy: r_k · x_ijk ≤ c_ij
             for commodity in self.commodities:
-                if (u, v, key, commodity) not in self.x_vars:
-                    continue
-                
-                required_speed = self.required_speeds[commodity]  # r_k
-                
-                # r_k · x_ijk ≤ c_ij
-                constraint_name = f"speed_{u}_{v}_{key}_{commodity}"
-                self.model += (
-                    required_speed * self.x_vars[(u, v, key, commodity)] <= capacity,
-                    constraint_name
-                )
+                if (u, v, key, commodity) in self.x_vars:
+                    required_speed = self.required_speeds[commodity]
+                    constraint_name = f"capacity_{u}_{v}_{key}_{commodity[0]}_{commodity[1]}"
+                    self.model += (
+                        required_speed * self.x_vars[(u, v, key, commodity)] <= capacity,
+                        constraint_name
+                    )
     
     def solve(self, time_limit=60):
         """

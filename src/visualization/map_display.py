@@ -151,20 +151,21 @@ class MapVisualizer:
             width: 220px; 
             height: auto; 
             background-color: white; 
-            border:2px solid grey; 
-            z-index:9999; 
-            font-size:14px;
+            border: 2px solid grey; 
+            z-index: 9999; 
+            font-size: 14px;
             padding: 10px;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
             ">
-            <p style="margin-bottom: 5px; font-weight: bold;">Legend</p>
-            <p style="margin: 3px;"><i class="fa fa-home" style="color:green"></i> Ambulance Base</p>
-            <p style="margin: 3px;"><i class="fa fa-info-circle" style="color:blue"></i> Emergency (Leve)</p>
-            <p style="margin: 3px;"><i class="fa fa-exclamation-circle" style="color:orange"></i> Emergency (Media)</p>
-            <p style="margin: 3px;"><i class="fa fa-bolt" style="color:red"></i> Emergency (Critica)</p>
-            <p style="margin: 3px;"><span style="color:gray;">―</span> Road Network</p>
-            <p style="margin: 3px;"><span style="color:blue;font-weight:bold;">―</span> Leve Route</p>
-            <p style="margin: 3px;"><span style="color:orange;font-weight:bold;">―</span> Media Route</p>
-            <p style="margin: 3px;"><span style="color:red;font-weight:bold;">―</span> Critica Route</p>
+            <p style="margin-bottom: 5px; font-weight: bold; color: #333;">Legend</p>
+            <p style="margin: 3px; color: #333;"><i class="fa fa-home" style="color:green"></i> Ambulance Base</p>
+            <p style="margin: 3px; color: #333;"><i class="fa fa-info-circle" style="color:blue"></i> Emergency (Leve)</p>
+            <p style="margin: 3px; color: #333;"><i class="fa fa-exclamation-circle" style="color:orange"></i> Emergency (Media)</p>
+            <p style="margin: 3px; color: #333;"><i class="fa fa-bolt" style="color:red"></i> Emergency (Critica)</p>
+            <p style="margin: 3px; color: #333;"><span style="color:gray;">━━━</span> Road Network</p>
+            <p style="margin: 3px; color: #333;"><span style="color:blue;font-weight:bold;">━━━</span> Leve Route</p>
+            <p style="margin: 3px; color: #333;"><span style="color:orange;font-weight:bold;">━━━</span> Media Route</p>
+            <p style="margin: 3px; color: #333;"><span style="color:red;font-weight:bold;">━━━</span> Critica Route</p>
         </div>
         {% endmacro %}
         '''

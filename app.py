@@ -31,10 +31,10 @@ distance = st.sidebar.slider("Distance (m)", 400, 800, 560, help="Radius for cir
 
 # Optimization parameters
 st.sidebar.subheader("Speed Parameters")
-r_min = st.sidebar.slider("R_min (km/h)", 10, 50, 30, help="Minimum required speed")
-r_max = st.sidebar.slider("R_max (km/h)", 50, 100, 70, help="Maximum required speed")
-c_min = st.sidebar.slider("C_min (km/h)", 20, 60, 40, help="Minimum road capacity")
-c_max = st.sidebar.slider("C_max (km/h)", 60, 120, 80, help="Maximum road capacity")
+r_min = st.sidebar.slider("R_min (km/h)", 10, 30, 15, help="Minimum required speed")
+r_max = st.sidebar.slider("R_max (km/h)", 30, 70, 35, help="Maximum required speed")
+c_min = st.sidebar.slider("C_min (km/h)", 20, 50, 40, help="Minimum road capacity")
+c_max = st.sidebar.slider("C_max (km/h)", 50, 100, 80, help="Maximum road capacity")
 
 # Emergency configuration
 st.sidebar.subheader("Emergencies")

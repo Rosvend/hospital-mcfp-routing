@@ -22,7 +22,7 @@ class OptimizationData:
             self.edge_data[(u, v, key)] = {
                 'length': edge_attrs.get('length', 0),
                 'capacity': edge_attrs.get('capacity', 50),
-                'time': edge_attrs.get('travel_time', 0)
+                'travel_time': edge_attrs.get('travel_time', 0)
             }
         
         self.origin = origin

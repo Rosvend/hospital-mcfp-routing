@@ -29,19 +29,17 @@ class AmbulanceRoutingModel:
             'Critica': 'Critica'
         }
         
-        # Agrupar destinos por severidad
-        self.commodity_destinations = self._group_destinations()
-        self.commodities = list(self.commodity_destinations.keys())
-        
-    def _group_destinations(self):
-        """Agrupa destinos por tipo de emergencia."""
-        groups = {}
+        # Cada emergencia es un commodity separado
+        # commodity_id = (dest_node, severity_type)
+        self.commodities = []
         for dest_node, severity in self.data.destinations:
             commodity = self.severity_map.get(severity, 'Leve')
-            if commodity not in groups:
-                groups[commodity] = []
-            groups[commodity].append(dest_node)
-        return groups
+            self.commodities.append((dest_node, commodity))
+        
+        # Mapeo de commodity a nodo destino
+        self.commodity_destinations = {
+            comm: dest for dest, comm in self.commodities
+        }
     
     def set_parameters(self, costs=None, r_min=30, r_max=70):
         """
@@ -70,19 +68,20 @@ class AmbulanceRoutingModel:
         Leves: velocidades moderadas (rango inferior)
         """
         speeds = {}
-        for commodity in self.commodities:
-            if commodity == 'Critica':
-                speeds[commodity] = random.uniform(r_max * 0.8, r_max)
-            elif commodity == 'Media':
-                speeds[commodity] = random.uniform(
+        for dest_node, severity_type in self.commodities:
+            if severity_type == 'Critica':
+                speed = random.uniform(r_max * 0.8, r_max)
+            elif severity_type == 'Media':
+                speed = random.uniform(
                     r_min + (r_max - r_min) * 0.4, 
                     r_max * 0.9
                 )
             else:  # Leve
-                speeds[commodity] = random.uniform(
+                speed = random.uniform(
                     r_min, 
                     r_min + (r_max - r_min) * 0.6
                 )
+            speeds[(dest_node, severity_type)] = speed
         return speeds
     
     def build_model(self):
@@ -116,12 +115,11 @@ class AmbulanceRoutingModel:
         """
         for (u, v, key) in self.data.edges:
             for commodity in self.commodities:
-                if self.commodity_destinations[commodity]:
-                    var_name = f"x_{u}_{v}_{key}_{commodity}"
-                    self.x_vars[(u, v, key, commodity)] = pulp.LpVariable(
-                        var_name, 
-                        cat='Binary'
-                    )
+                var_name = f"x_{u}_{v}_{key}_{commodity[0]}_{commodity[1]}"
+                self.x_vars[(u, v, key, commodity)] = pulp.LpVariable(
+                    var_name, 
+                    cat='Binary'
+                )
     
     def _set_objective(self):
         """
@@ -133,7 +131,7 @@ class AmbulanceRoutingModel:
         - x_ijk: 1 si se usa el arco, 0 si no
         """
         objective = pulp.lpSum([
-            self.costs[commodity] *                              # α_k ($/hora)
+            self.costs[commodity[1]] *                           # α_k ($/hora) basado en severidad
             self.data.edge_data[(u, v, key)]['travel_time'] *    # t_ij (segundos)
             (1.0 / 3600) *                                       # Convertir a horas
             self.x_vars[(u, v, key, commodity)]                  # x_ijk
@@ -155,11 +153,7 @@ class AmbulanceRoutingModel:
                    = 0 en caso contrario
         """
         for commodity in self.commodities:
-            if not self.commodity_destinations[commodity]:
-                continue
-            
-            # Tomar el primer destino (caso simplificado)
-            destination = self.commodity_destinations[commodity][0]
+            destination = commodity[0]  # El nodo destino es el primer elemento de la tupla
             
             for node in self.data.nodes:
                 # Flujo que sale
@@ -184,7 +178,7 @@ class AmbulanceRoutingModel:
                 else:
                     balance = 0   # Intermedio: conservación
                 
-                constraint_name = f"flow_{node}_{commodity}"
+                constraint_name = f"flow_{node}_{commodity[0]}_{commodity[1]}"
                 self.model += (outflow - inflow == balance, constraint_name)
     
     def _add_speed_requirements(self):
@@ -299,6 +293,8 @@ class AmbulanceRoutingModel:
             if not arcs:
                 continue
             
+            dest_node, severity_type = commodity
+            
             # Calcular métricas
             total_distance = sum(
                 self.data.edge_data[(u, v, key)]['length'] / 1000
@@ -310,10 +306,11 @@ class AmbulanceRoutingModel:
                 for u, v, key in arcs
             )
             
-            cost = self.costs[commodity] * (total_time / 3600)
+            cost = self.costs[severity_type] * (total_time / 3600)
             
             summary[commodity] = {
-                'destination': self.commodity_destinations[commodity][0],
+                'destination': dest_node,
+                'severity': severity_type,
                 'required_speed_kmh': self.required_speeds[commodity],
                 'distance_km': total_distance,
                 'time_seconds': total_time,
@@ -335,12 +332,11 @@ class AmbulanceRoutingModel:
         
         for commodity in self.commodities:
             if commodity not in summary:
-                print(f"\n{commodity}: Sin ruta")
+                print(f"\nEmergencia {commodity[0]} ({commodity[1]}): Sin ruta")
                 continue
             
             info = summary[commodity]
-            print(f"\n{commodity.upper()}:")
-            print(f"  Destino: nodo {info['destination']}")
+            print(f"\nEMERGENCIA {info['destination']} ({info['severity'].upper()}):")
             print(f"  Velocidad requerida: {info['required_speed_kmh']:.1f} km/h")
             print(f"  Distancia: {info['distance_km']:.2f} km")
             print(f"  Tiempo: {info['time_minutes']:.2f} min")
@@ -348,4 +344,4 @@ class AmbulanceRoutingModel:
             print(f"  Segmentos: {info['num_segments']}")
         
         total = pulp.value(self.model.objective)
-        print(f"COSTO TOTAL DEL SISTEMA: ${total:.2f}")
+        print(f"\nCOSTO TOTAL DEL SISTEMA: ${total:.2f}")
